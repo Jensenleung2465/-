@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCSAERA小工具 -- 假期倒計時</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f8ff;
+            color: #333;
+            text-align: center;
+        }
+        .countdown {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 300px;
+            margin-bottom: 20px;
+        }
+        .countdown div {
+            font-size: 2em;
+            margin: 10px 0;
+        }
+        .label {
+            font-size: 0.5em;
+            color: #888;
+        }
+        .copyright {
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<input type="file" id="fileInput" accept=".tcsaeradate">
+<div class="countdown">
+    <div id="days"></div>
+    <div class="label">天</div>
+    <div id="hours"></div>
+    <div class="label">小時</div>
+    <div id="minutes"></div>
+    <div class="label">分</div>
+    <div id="seconds"></div>
+    <div class="label">秒</div>
+</div>
+<div class="copyright">© 2024 tcs admin aera. All rights reserved.</div>
+
+<script>
+    let holidayDate;
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target.result;
+                parseCSV(text);
+            };
+            reader.readAsText(file);
+        }
+    }
+
+    function parseCSV(text) {
+        const lines = text.trim().split('\n');
+        const today = new Date();
+        for (let line of lines) {
+            const date = new Date(line.trim()).getTime();
+            if (date > today.getTime()) {
+                holidayDate = date;
+                break;
+            }
+        }
+
+        if (holidayDate) {
+            startCountdown();
+        } else {
+            document.querySelector(".countdown").innerHTML = "沒有假期了！";
+        }
+    }
+
+    function startCountdown() {
+        const countdown = setInterval(() => {
+            const now = new Date().getTime();
+            const distance = holidayDate - now;
+
+            if (distance < 0) {
+                clearInterval(countdown);
+                document.querySelector(".countdown").innerHTML = "假期快乐！";
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("days").innerHTML = days;
+            document.getElementById("hours").innerHTML = hours;
+            document.getElementById("minutes").innerHTML = minutes;
+            document.getElementById("seconds").innerHTML = seconds;
+        }, 1000);
+    }
+
+    document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+</script>
+
+</body>
+</html>
